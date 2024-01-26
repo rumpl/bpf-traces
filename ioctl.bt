@@ -1,0 +1,23 @@
+#!/usr/bin/env bpftrace
+
+/*
+ * ioctl.bt - Trace ioctl() arguments and return values
+ * 
+ */
+
+tracepoint:syscalls:sys_enter_ioctl,
+{
+	@arg[tid] = args->arg;
+	@cmd[tid] = args->cmd;
+}
+
+tracepoint:syscalls:sys_exit_ioctl,
+/@arg[tid]/
+{
+	$ret = args->ret;
+
+	printf("%s:%d cmd(%u) ret(%d) arg(%s)\n", comm, pid, @cmd[tid], $ret, str(@arg[tid]));
+	delete(@arg[tid]);
+	delete(@cmd[tid]);
+}
+
